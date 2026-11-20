@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Пульс цен — история цен на ваши товары</title>
+  <meta name="description" content="Пульс цен — личный кабинет отслеживания цен. Вход по email и паролю, графики и история изменения цен.">
+  <meta name="theme-color" content="#d32f2f">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">К содержимому</a>
+
+  <header class="topbar">
+    <a class="brand" href="./">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12h3.5l2-5 3 10 2.5-7 1.8 4H21"></path>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <strong>Пульс цен</strong>
+        <small>история цен в одном месте</small>
+      </span>
+    </a>
+
+    <nav class="topnav" aria-label="Основная навигация">
+      <a href="#about">О программе</a>
+      <a href="#support">Поддержать</a>
+      <a class="topnav-cta" href="https://github.com/RomanLyavin/puls-cen/releases/latest"
+         target="_blank" rel="noopener">Скачать приложение</a>
+      <button id="theme-toggle" class="icon-button" type="button"
+              aria-label="Переключить тему" title="Переключить тему">
+        <span aria-hidden="true">◐</span>
+      </button>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- Вход -->
+    <section id="auth-view" class="auth-layout">
+      <div class="hero">
+        <p class="eyebrow">Android-приложение + сайт</p>
+        <h1>Следите за ценой.<br>Не пропускайте снижение.</h1>
+        <p class="lead">
+          Добавьте ссылку на товар в приложении — «Пульс цен» найдёт название, фото,
+          артикул и цену, а затем будет записывать каждое изменение в историю.
+          Сайт показывает ту же историю после входа.
+        </p>
+        <ul class="features">
+          <li><span aria-hidden="true">🔗</span> Wildberries, Ozon и обычные магазины</li>
+          <li><span aria-hidden="true">📉</span> График и история по дням</li>
+          <li><span aria-hidden="true">🔒</span> Данные на GitHub только в зашифрованном виде</li>
+          <li><span aria-hidden="true">🔁</span> Ежедневная проверка и синхронизация</li>
+        </ul>
+      </div>
+
+      <form id="login-form" class="card auth-card" autocomplete="on" novalidate>
+        <h2>Личный кабинет</h2>
+        <p class="muted">
+          Вход по email и паролю, которые вы указали при регистрации в приложении.
+        </p>
+
+        <label class="field">
+          <span>Email</span>
+          <input id="login-email" name="email" type="email" inputmode="email"
+                 autocomplete="username" placeholder="you@example.com" required>
+        </label>
+
+        <label class="field">
+          <span>Пароль</span>
+          <div class="password-row">
+            <input id="login-password" name="password" type="password"
+                   autocomplete="current-password" placeholder="Пароль от аккаунта" required>
+            <button id="toggle-password" class="icon-button" type="button"
+                    aria-label="Показать пароль">👁</button>
+          </div>
+        </label>
+
+        <p id="auth-error" class="form-error" role="alert" hidden></p>
+
+        <button id="login-button" class="button button-primary" type="submit">
+          Войти
+        </button>
+
+        <p class="fineprint">
+          Регистрация выполняется только в Android-приложении. Пароль — ключ шифрования:
+          восстановить его невозможно, поэтому сохраните его в надёжном месте.
+        </p>
+      </form>
+    </section>
+
+    <!-- Кабинет -->
+    <section id="cabinet-view" hidden>
+      <div class="cabinet-head card">
+        <div class="profile">
+          <span id="profile-avatar" class="avatar" aria-hidden="true">Я</span>
+          <div class="profile-text">
+            <h2 id="profile-name">Пользователь</h2>
+            <p id="profile-email" class="muted"></p>
+          </div>
+        </div>
+        <div class="cabinet-actions">
+          <span class="pill" id="updated-note">—</span>
+          <button id="logout-button" class="button button-ghost" type="button">Выйти</button>
+        </div>
+      </div>
+
+      <div class="stats" id="stats">
+        <div class="stat card">
+          <span class="stat-value" id="stat-products">0</span>
+          <span class="stat-label">товаров</span>
+        </div>
+        <div class="stat card">
+          <span class="stat-value" id="stat-points">0</span>
+          <span class="stat-label">точек истории</span>
+        </div>
+        <div class="stat card">
+          <span class="stat-value down" id="stat-down">0</span>
+          <span class="stat-label">снижений цены</span>
+        </div>
+        <div class="stat card">
+          <span class="stat-value up" id="stat-up">0</span>
+          <span class="stat-label">подорожаний</span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <label class="field field-inline">
+          <span class="visually-hidden">Поиск по товарам</span>
+          <input id="product-search" type="search" placeholder="Поиск по названию или артикулу">
+        </label>
+        <label class="field field-inline">
+          <span class="visually-hidden">Фильтр</span>
+          <select id="product-filter">
+            <option value="ALL">Все товары</option>
+            <option value="DOWN">Подешевели</option>
+            <option value="UP">Подорожали</option>
+            <option value="SAME">Без изменений</option>
+          </select>
+        </label>
+        <label class="field field-inline">
+          <span class="visually-hidden">Сортировка</span>
+          <select id="product-sort">
+            <option value="CHANGE">Сначала с изменениями</option>
+            <option value="TITLE">По названию</option>
+            <option value="PRICE">По цене</option>
+            <option value="CHECKED">По дате проверки</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="products-panel" class="product-list" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <section id="about" class="section card">
+    <div class="section-head">
+      <h2>О программе</h2>
+      <span class="pill">версия сайта 1.0</span>
+    </div>
+    <p>
+      «Пульс цен» — приложение для Android и этот сайт. Приложение собирает цены,
+      ведёт историю и синхронизирует зашифрованный файл с публичным
+      GitHub-репозиторием. Сайт умеет только читать: он скачивает зашифрованный
+      файл и расшифровывает его в браузере тем же паролем.
+    </p>
+    <ul class="about-list">
+      <li><strong>Что хранится на GitHub:</strong> один файл <code>bundle.enc</code> —
+        JSON-конверт с солью, IV и шифротекстом (PBKDF2-HMAC-SHA256, 210 000 итераций, AES-256-GCM).</li>
+      <li><strong>Что не хранится:</strong> email в открытом виде, названия товаров, цены,
+        история, имя и аватар. Без пароля содержимое не прочитать.</li>
+      <li><strong>Пароль:</strong> не отправляется на сервер и не восстанавливается.
+        Потеря пароля означает потерю доступа к аккаунту.</li>
+    </ul>
+    <div class="section-actions">
+      <a class="button button-primary" href="https://github.com/RomanLyavin/puls-cen/releases/latest"
+         target="_blank" rel="noopener">Скачать APK</a>
+      <a class="button button-ghost" href="https://github.com/RomanLyavin/puls-cen"
+         target="_blank" rel="noopener">Репозиторий на GitHub</a>
+      <a class="button button-ghost" href="mailto:lyrv@t-inform.ru">Написать разработчику</a>
+    </div>
+  </section>
+
+  <section id="support" class="section card support">
+    <div>
+      <h2>Поддержать проект</h2>
+      <p>
+        «Пульс цен» бесплатный, без рекламы и подписок. Если приложение помогает
+        экономить — можно поддержать разработку переводом.
+      </p>
+      <a class="button button-primary" href="https://t.tb.ru/pm_short/AOdA22MAdsS"
+         target="_blank" rel="noopener">Поддержать</a>
+      <p class="fineprint">
+        Вопросы и предложения: <a href="mailto:lyrv@t-inform.ru">lyrv@t-inform.ru</a>
+      </p>
+    </div>
+    <a class="support-image" href="https://t.tb.ru/pm_short/AOdA22MAdsS"
+       target="_blank" rel="noopener" aria-label="Перейти к оплате поддержки">
+      <img src="assets/donate.jpg" alt="Поддержать «Пульс цен»" loading="lazy">
+    </a>
+  </section>
+
+  <footer class="footer">
+    <div>
+      <strong>Пульс цен</strong>
+      <p class="muted">© <span id="footer-year">2026</span> Лявин Роман. Данные шифруются на устройстве.</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/RomanLyavin/puls-cen" target="_blank" rel="noopener">GitHub</a>
+      <a href="mailto:lyrv@t-inform.ru">lyrv@t-inform.ru</a>
+      <a href="#about">О программе</a>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

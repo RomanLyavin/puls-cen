@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Белый ценник -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M52,22 L76,22 Q80,22 83,25 L90,32 Q93,35 93,39 L93,51 L60,84 Q56,88 52,84 L26,58 Q22,54 26,50 Z" />
+
+    <!-- Отверстие ценника -->
+    <path
+        android:fillColor="#D32F2F"
+        android:pathData="M78,32 m-5,0 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0" />
+
+    <!-- Линия пульса -->
+    <path
+        android:strokeColor="#D32F2F"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M32,56 L44,56 L49,44 L57,68 L64,52 L69,56 L84,56" />
+</vector>
