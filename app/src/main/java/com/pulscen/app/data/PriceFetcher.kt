@@ -94,6 +94,10 @@ class PriceFetcher {
             "x-o3-app-name" to "dweb_client",
             "Referer" to "https://www.ozon.ru/product/$article/"
         )
+        // Попробуем с обычным desktop User-Agent для API
+        val desktopHeaders = apiHeaders + mapOf(
+            "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        )
         val endpoints = listOf(
             "https://www.ozon.ru/api/entrypoint-api.bx/page/json/v2?url=/product/$article/",
             "https://www.ozon.ru/api/composer-api.bx/page/json/v2?url=/product/$article/",
@@ -101,7 +105,7 @@ class PriceFetcher {
         )
         var lastCode = 0
         for (endpoint in endpoints) {
-            val page = get(endpoint, apiHeaders)
+            val page = get(endpoint, desktopHeaders)
             lastCode = page.code
             if (page.code == 200) {
                 val parsed = PriceParser.parseOzon(page.body)
@@ -111,12 +115,18 @@ class PriceFetcher {
             }
         }
 
+        // Попробуем получить страницу напрямую как fallback
         val page = get(url, browserHeaders)
         lastCode = page.code
-        val generic = if (page.code == 200) PriceParser.parseGeneric(page.body, url) else null
-        if (generic != null) {
-            return generic.copy(article = article, marketplace = Marketplace.OZON)
+        if (page.code == 200) {
+            val generic = PriceParser.parseGeneric(page.body, url)
+            if (generic != null) {
+                return generic.copy(article = article, marketplace = Marketplace.OZON)
+            }
+            // Если parseGeneric не нашёл данные, но страница открыта — можно попробовать
+            // извлечь цену из HTML-тегов или других источников.
         }
+
         throw PriceFetchException(
             if (lastCode == 403 || lastCode == 307) {
                 "Ozon не отдал цену: сработала защита от запросов. Введите цену вручную."
