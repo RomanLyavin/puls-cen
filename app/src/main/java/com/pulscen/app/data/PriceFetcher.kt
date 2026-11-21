@@ -33,6 +33,12 @@ class PriceFetcher {
         val marketplace = Marketplace.detect(normalized)
         val article = PriceParser.extractArticle(normalized, marketplace)
         if ((marketplace == Marketplace.WB || marketplace == Marketplace.OZON) && article == null) {
+            // Попробуем извлечь артикул вручную для отладки
+            val fallbackArticle = extractArticleFallback(normalized)
+            if (fallbackArticle != null) {
+                // Используем fallback, но всё равно бросаем исключение с деталями
+                throw PriceFetchException("Не удалось найти артикул товара в ссылке. Попробуйте ввести артикул вручную. (URL: $normalized)")
+            }
             throw PriceFetchException("Не удалось найти артикул товара в ссылке")
         }
 
@@ -115,7 +121,7 @@ class PriceFetcher {
             }
         }
 
-        // Попробуем получить страницу напрямую как fallback
+        // Если API не сработало, попробуем получить страницу напрямую
         val page = get(url, browserHeaders)
         lastCode = page.code
         if (page.code == 200) {
@@ -123,8 +129,6 @@ class PriceFetcher {
             if (generic != null) {
                 return generic.copy(article = article, marketplace = Marketplace.OZON)
             }
-            // Если parseGeneric не нашёл данные, но страница открыта — можно попробовать
-            // извлечь цену из HTML-тегов или других источников.
         }
 
         throw PriceFetchException(
@@ -147,14 +151,32 @@ class PriceFetcher {
             )
     }
 
+    private fun extractArticleFallback(url: String): String? {
+        // Простая попытка извлечь цифры в конце URL
+        val path = runCatching { java.net.URI.create(url).getPath() }.getOrNull() ?: return null
+        val lastPart = path.split("/").lastOrNull()
+        if (lastPart != null) {
+            val digits = Regex("\\d+").findAll(lastPart).map { it.groupValues[0] }.toList()
+            // Возвращаем последовательность из 6+ цифр
+            return digits.find { it.length >= 6 } ?: digits.lastOrNull()
+        }
+        return null
+    }
+
     private fun get(url: String, headers: Map<String, String>): Page {
         val builder = Request.Builder().url(url).get()
         headers.forEach { (name, value) -> builder.header(name, value) }
         return try {
-            client.newCall(builder.build()).execute().use { response ->
-                val body = response.body?.string().orEmpty()
-                Page(response.code, body)
-            }
+            // Отключаем автоматические редиректы для лучшей обработки
+            val call = client.newBuilder()
+                .followRedirects(false)
+                .followSslRedirects(false)
+                .build()
+                .newCall(builder.build())
+            
+            val response = call.execute()
+            val body = response.body?.string().orEmpty()
+            Page(response.code, body)
         } catch (error: Exception) {
             throw PriceFetchException(
                 "Не удалось открыть ссылку: ${error.message ?: "сетевая ошибка"}"

@@ -36,8 +36,8 @@ android {
         applicationId = "com.pulscen.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 5
+        versionName = "1.0.4"
         buildConfigField("String", "GITHUB_TOKEN_B64", "\"$embeddedGitHubTokenB64\"")
         buildConfigField("String", "GITHUB_OWNER", "\"RomanLyavin\"")
         buildConfigField("String", "GITHUB_REPO", "\"puls-cen\"")
